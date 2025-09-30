@@ -1,30 +1,37 @@
+import { useState } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import UserInputForm from './components/UserInputForm'
+import MovieSelection from './components/MovieSelection'
 import './App.css'
 
 function App() {
+  const [userData, setUserData] = useState(null)
+
+  const handleUserSubmit = (data) => {
+    setUserData(data)
+  }
+
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            🎬 Movie Recommender Study
-          </h1>
-          <p className="text-gray-600 mb-6">
-            Welcome to our movie recommendation research study! 
-            This application will help us understand how different recommendation systems affect user experience.
-          </p>
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-            <p className="text-blue-700 text-sm">
-              ✅ Vite + React application successfully initialized<br/>
-              ✅ Tailwind CSS configured<br/>
-              ✅ Environment variables set up<br/>
-              ✅ Ready for development
-            </p>
-          </div>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
-            Coming Soon - Sprint 2
-          </button>
-        </div>
-      </div>
+    <div className="App">
+      <Routes>
+        <Route 
+          path="/" 
+          element={
+            userData ? 
+              <Navigate to="/movies" replace /> : 
+              <UserInputForm onUserSubmit={handleUserSubmit} />
+          } 
+        />
+        <Route 
+          path="/movies" 
+          element={
+            userData ? 
+              <MovieSelection userData={userData} /> : 
+              <Navigate to="/" replace />
+          } 
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   )
 }
