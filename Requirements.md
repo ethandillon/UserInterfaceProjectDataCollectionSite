@@ -1,4 +1,9 @@
-# 🎬 Movie Recommender A/B Test – Requirements & Sprint Plan
+# 🎬 Movie Reco### Sprint 1 – Setup & Infrastructure (1 week)
+- [x] **Req 1.1:** Initialize Vite + React project structure  
+- [x] **Req 1.2:** Install dependencies (React Router, Axios for API calls, Tailwind/styling library)  
+- [x] **Req 1.3:** Configure environment variables (TMDB API key & sheet.best endpoint)  
+- [x] **Req 1.4:** Set up GitHub repo + deployment pipeline (Vercel/Netlify)  
+- **Deliverable:** Running "Hello World" React app deployed onliner A/B Test – Requirements & Sprint Plan
 
 ## 📋 High-Level Goal
 Build a static **Vite + React** web app that:  
