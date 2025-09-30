@@ -15,9 +15,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "VITE_TMDB_API_KEY": "@tmdb_api_key",
-    "VITE_SHEET_BEST_ENDPOINT": "@sheet_best_endpoint"
-  }
+  ]
 }
