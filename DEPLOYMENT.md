@@ -65,10 +65,34 @@ vercel --prod
 ## Troubleshooting
 
 ### Common Issues:
-1. **Environment variables not working**: Make sure they start with `VITE_` prefix
-2. **Build failing**: Check that all dependencies are in `package.json`
-3. **API calls failing**: Verify environment variables are set correctly
-4. **Routes not working**: Ensure `vercel.json` has the correct route configuration
+
+#### 1. **Blank Screen / MIME Type Error**
+**Error:** `Failed to load module script: Expected a JavaScript module script but the server responded with a MIME type of "text/html"`
+
+**Solution:** This happens when static assets aren't served correctly. Make sure your `vercel.json` uses the correct configuration:
+
+```json
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+```
+
+#### 2. **Environment variables not working**
+Make sure they start with `VITE_` prefix and are set in all environments (Production, Preview, Development)
+
+#### 3. **Build failing** 
+Check that all dependencies are in `package.json` and run `npm run build` locally first
+
+#### 4. **API calls failing**
+Verify environment variables are set correctly in Vercel dashboard
+
+#### 5. **Routes not working**
+Ensure `vercel.json` has the correct rewrite configuration for SPA routing
 
 ### Testing Deployment:
 1. Check that the form submission works
