@@ -1,47 +1,263 @@
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import MovieCard from './MovieCard'
+import LoadingSpinner from './LoadingSpinner'
+import { fetchMixedMovies, fetchMoviesByGenre, fetchGenres } from '../utils/tmdbApi'
+import { logToSheet } from '../utils/dataLogger'
+
 const MovieSelection = ({ userData }) => {
+  const navigate = useNavigate()
   const { name, studentId, group } = userData
 
-  return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="max-w-4xl w-full bg-white rounded-lg shadow-md p-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Welcome, {name}!
-          </h1>
-          <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
-            <p className="text-green-700">
-              ✅ Successfully registered for the study
-            </p>
-            <p className="text-green-600 text-sm mt-2">
-              Student ID: {studentId} | Group: {group} | 
-              Type: {group === 'A' ? 'Static Recommender' : 'Adaptive Recommender'}
-            </p>
+  // State management
+  const [movies, setMovies] = useState([])
+  const [genres, setGenres] = useState([])
+  const [selectedMovies, setSelectedMovies] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [loadingNewMovies, setLoadingNewMovies] = useState(false)
+
+  const MAX_SELECTIONS = 5
+
+  // Initialize movies and genres
+  useEffect(() => {
+    const initializeData = async () => {
+      try {
+        setLoading(true)
+        const [moviesData, genresData] = await Promise.all([
+          fetchMixedMovies(20),
+          fetchGenres()
+        ])
+        
+        setMovies(moviesData)
+        setGenres(genresData.genres)
+        setError('')
+      } catch (error) {
+        console.error('Error loading initial data:', error)
+        setError('Failed to load movies. Please refresh the page.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    initializeData()
+  }, [])
+
+  // Handle movie selection
+  const handleMovieSelect = async (movie) => {
+    if (selectedMovies.length >= MAX_SELECTIONS) return
+    if (selectedMovies.some(m => m.id === movie.id)) return
+
+    const newSelectedMovies = [...selectedMovies, movie]
+    setSelectedMovies(newSelectedMovies)
+
+    // Log selection to Google Sheet
+    try {
+      const selectionData = {
+        participant_id: studentId,
+        name: name,
+        group: group,
+        timestamp: new Date().toISOString(),
+        event_type: 'movie_selection',
+        movie_id: movie.id.toString(),
+        genre: movie.genre_ids && movie.genre_ids.length > 0 
+          ? genres.find(g => g.id === movie.genre_ids[0])?.name || 'Unknown'
+          : 'Unknown',
+        survey_helpfulness: '',
+        survey_satisfaction: '',
+        survey_ease: '',
+        survey_personalization: '',
+        survey_trust: '',
+        survey_reuse: '',
+        survey_open_feedback: ''
+      }
+
+      await logToSheet(selectionData)
+    } catch (error) {
+      console.error('Error logging movie selection:', error)
+    }
+
+    // Adaptive behavior for Group B
+    if (group === 'B' && movie.genre_ids && movie.genre_ids.length > 0) {
+      try {
+        setLoadingNewMovies(true)
+        const primaryGenreId = movie.genre_ids[0]
+        const genreMovies = await fetchMoviesByGenre(primaryGenreId, 1)
+        
+        // Filter out already displayed movies and selected movies
+        const displayedMovieIds = new Set(movies.map(m => m.id))
+        const selectedMovieIds = new Set(newSelectedMovies.map(m => m.id))
+        
+        const newMovies = genreMovies.results.filter(m => 
+          !displayedMovieIds.has(m.id) && !selectedMovieIds.has(m.id)
+        ).slice(0, 5) // Add 5 new movies
+        
+        if (newMovies.length > 0) {
+          // Replace some random movies in the grid with new genre-based movies
+          setMovies(prevMovies => {
+            const updatedMovies = [...prevMovies]
+            const availableIndices = updatedMovies
+              .map((movie, index) => selectedMovieIds.has(movie.id) ? -1 : index)
+              .filter(index => index !== -1)
+            
+            // Randomly replace some movies
+            const indicesToReplace = availableIndices
+              .sort(() => 0.5 - Math.random())
+              .slice(0, Math.min(newMovies.length, availableIndices.length))
+            
+            indicesToReplace.forEach((replaceIndex, i) => {
+              if (i < newMovies.length) {
+                updatedMovies[replaceIndex] = newMovies[i]
+              }
+            })
+            
+            return updatedMovies
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching adaptive movies:', error)
+      } finally {
+        setLoadingNewMovies(false)
+      }
+    }
+
+    // Check if we've reached the maximum selections
+    if (newSelectedMovies.length === MAX_SELECTIONS) {
+      setTimeout(() => {
+        navigate('/survey')
+      }, 1500) // Brief delay to show the final selection
+    }
+  }
+
+  // Handle movie deselection
+  const handleMovieDeselect = (movie) => {
+    setSelectedMovies(prev => prev.filter(m => m.id !== movie.id))
+  }
+
+  if (loading) {
+    return <LoadingSpinner message="Loading movies..." />
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
+          <div className="text-red-500 mb-4">
+            <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.962-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
           </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Error Loading Movies</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100 py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Select Movies You Like
+          </h1>
+          <p className="text-gray-600 mb-4">
+            Hi {name}! Please select {MAX_SELECTIONS} movies that interest you.
+            Click on movie posters to select them.
+          </p>
           
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-blue-800 mb-3">
-              Coming in Sprint 3: Movie Selection
-            </h2>
-            <p className="text-blue-700 mb-4">
-              This is where you'll browse and select movies. The interface will show:
-            </p>
-            <ul className="text-left text-blue-600 space-y-2 max-w-md mx-auto">
-              <li>• Grid of movie posters with titles and genres</li>
-              <li>• Click to select movies you like</li>
-              <li>• {group === 'A' ? 'Static recommendations (movies stay the same)' : 'Adaptive recommendations (new movies appear based on your choices)'}</li>
-              <li>• Progress indicator (select 5 movies total)</li>
-            </ul>
+          {/* Progress indicator */}
+          <div className="flex items-center justify-center space-x-4 mb-6">
+            <div className="bg-white rounded-lg shadow-sm px-4 py-2">
+              <span className="text-sm text-gray-600">Progress:</span>
+              <span className="font-semibold text-blue-600 ml-2">
+                {selectedMovies.length}/{MAX_SELECTIONS}
+              </span>
+            </div>
+            <div className="bg-white rounded-lg shadow-sm px-4 py-2">
+              <span className="text-sm text-gray-600">Group:</span>
+              <span className="font-semibold text-purple-600 ml-2">
+                {group} ({group === 'A' ? 'Static' : 'Adaptive'})
+              </span>
+            </div>
           </div>
 
-          <div className="mt-8">
-            <button 
-              className="bg-gray-400 text-white font-bold py-2 px-4 rounded cursor-not-allowed"
-              disabled
-            >
-              Movie Selection - Available in Sprint 3
-            </button>
+          {/* Progress bar */}
+          <div className="w-full max-w-md mx-auto bg-gray-200 rounded-full h-2 mb-6">
+            <div 
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${(selectedMovies.length / MAX_SELECTIONS) * 100}%` }}
+            ></div>
           </div>
+
+          {loadingNewMovies && group === 'B' && (
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mr-2"></div>
+                <span className="text-purple-700 text-sm">Finding similar movies...</span>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Selected movies preview */}
+        {selectedMovies.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Selections:</h3>
+            <div className="flex flex-wrap gap-2">
+              {selectedMovies.map(movie => (
+                <div key={movie.id} className="flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                  <span>{movie.title}</span>
+                  <button
+                    onClick={() => handleMovieDeselect(movie)}
+                    className="ml-2 hover:text-blue-600"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Movies grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+          {movies.map((movie) => (
+            <MovieCard
+              key={movie.id}
+              movie={movie}
+              genres={genres}
+              isSelected={selectedMovies.some(m => m.id === movie.id)}
+              onSelect={handleMovieSelect}
+              disabled={selectedMovies.length >= MAX_SELECTIONS && !selectedMovies.some(m => m.id === movie.id)}
+            />
+          ))}
+        </div>
+
+        {/* Completion message */}
+        {selectedMovies.length === MAX_SELECTIONS && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4 text-center">
+              <div className="text-green-500 mb-4">
+                <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Great Job!</h2>
+              <p className="text-gray-600 mb-6">
+                You've selected {MAX_SELECTIONS} movies. Redirecting to the survey...
+              </p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
