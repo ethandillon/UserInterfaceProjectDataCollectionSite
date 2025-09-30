@@ -61,5 +61,3 @@ const ErrorBoundary = ({ children }) => {
 }
 
 export default ErrorBoundary
-
-export default ErrorBoundary
