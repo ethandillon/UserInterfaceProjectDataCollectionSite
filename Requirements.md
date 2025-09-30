@@ -28,9 +28,9 @@ Build a static **Vite + React** web app that:
 ---
 
 ### Sprint 2 – User Input & Experiment Setup (1 week)
-- [ ] **Req 2.1:** Landing form collects student **name + ID**  
-- [ ] **Req 2.2:** Randomly assign users to **Group A or B** (store in state + Google Sheet)  
-- [ ] **Req 2.3:** Log initial metadata (timestamp, group, name, ID) in Google Sheet  
+- [x] **Req 2.1:** Landing form collects student **name + ID**  
+- [x] **Req 2.2:** Randomly assign users to **Group A or B** (store in state + Google Sheet)  
+- [x] **Req 2.3:** Log initial metadata (timestamp, group, name, ID) in Google Sheet  
 - **Deliverable:** Student info recorded in Google Sheet upon submission  
 
 ---
