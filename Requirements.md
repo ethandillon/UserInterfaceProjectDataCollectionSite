@@ -1,21 +1,4 @@
-# 🎬 Movie Reco### Sprint 1 – Setup &### Sprint 3 – Movie Fetching & Display (2 weeks)
-- [x] **Req 3.1:** Integrate with **TMDB API** to fetch movies (e.g., trending or random)  
-- [x] **Req 3.2:** Display movies in a **grid of posters** with title & genre  
-- [x] **Req 3.3:** Allow users to select movies (click poster = "selected")  
-- [x] **Req 3.4:** Log selection event in Google Sheet (movie ID, genre, timestamp)  
-
-- **Adaptive Condition (Group B):**  
-  - [x] **Req 3.5:** When a movie is selected, fetch more movies of the **same genre** to update the grid  
-
-- **Static Condition (Group A):**  
-  - [x] **Req 3.6:** Movie grid remains unchanged after selections  
-
-- **Deliverable:** Users can pick 5 movies, with adaptive vs static flow depending on groupre (1 week)
-- [x] **Req 1.1:** Initialize Vite + React project structure  
-- [x] **Req 1.2:** Install dependencies (React Router, Axios for API calls, Tailwind/styling library)  
-- [x] **Req 1.3:** Configure environment variables (TMDB API key & sheet.best endpoint)  
-- [x] **Req 1.4:** Set up GitHub repo + deployment pipeline (Vercel/Netlify)  
-- **Deliverable:** Running "Hello World" React app deployed onliner A/B Test – Requirements & Sprint Plan
+# 🎬 Movie Recommender A/B Research Application Requirements
 
 ## 📋 High-Level Goal
 Build a static **Vite + React** web app that:  
@@ -31,10 +14,10 @@ Build a static **Vite + React** web app that:
 ## 🚀 Sprint Breakdown
 
 ### Sprint 1 – Setup & Infrastructure (1 week)
-- [ ] **Req 1.1:** Initialize Vite + React project structure  
-- [ ] **Req 1.2:** Install dependencies (React Router, Axios for API calls, Tailwind/styling library)  
-- [ ] **Req 1.3:** Configure environment variables (TMDB API key & sheet.best endpoint)  
-- [ ] **Req 1.4:** Set up GitHub repo + deployment pipeline (Vercel/Netlify)  
+- [x] **Req 1.1:** Initialize Vite + React project structure  
+- [x] **Req 1.2:** Install dependencies (React Router, Axios for API calls, Tailwind/styling library)  
+- [x] **Req 1.3:** Configure environment variables (TMDB API key & sheet.best endpoint)  
+- [x] **Req 1.4:** Set up GitHub repo + deployment pipeline (Vercel/Netlify)  
 - **Deliverable:** Running “Hello World” React app deployed online  
 
 ---
@@ -48,16 +31,16 @@ Build a static **Vite + React** web app that:
 ---
 
 ### Sprint 3 – Movie Fetching & Display (2 weeks)
-- [ ] **Req 3.1:** Integrate with **TMDB API** to fetch movies (e.g., trending or random)  
-- [ ] **Req 3.2:** Display movies in a **grid of posters** with title & genre  
-- [ ] **Req 3.3:** Allow users to select movies (click poster = “selected”)  
-- [ ] **Req 3.4:** Log selection event in Google Sheet (movie ID, genre, timestamp)  
+- [x] **Req 3.1:** Integrate with **TMDB API** to fetch movies (e.g., trending or random)  
+- [x] **Req 3.2:** Display movies in a **grid of posters** with title & genre  
+- [x] **Req 3.3:** Allow users to select movies (click poster = "selected")  
+- [x] **Req 3.4:** Log selection event in Google Sheet (movie ID, genre, timestamp)  
 
 - **Adaptive Condition (Group B):**  
-  - [ ] **Req 3.5:** When a movie is selected, fetch more movies of the **same genre** to update the grid  
+  - [x] **Req 3.5:** When a movie is selected, fetch more movies of the **same genre** to update the grid  
 
 - **Static Condition (Group A):**  
-  - [ ] **Req 3.6:** Movie grid remains unchanged after selections  
+  - [x] **Req 3.6:** Movie grid remains unchanged after selections  
 
 - **Deliverable:** Users can pick 5 movies, with adaptive vs static flow depending on group  
 
