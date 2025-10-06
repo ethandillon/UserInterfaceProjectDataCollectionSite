@@ -176,7 +176,7 @@ const MovieSelection = ({ userData }) => {
           {/* Content filtering notice */}
           <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-6 max-w-2xl mx-auto">
             <p className="text-green-700 text-sm">
-              ✅ Movies are filtered for appropriate content (PG-13 and below, family-friendly genres)
+              ✅ Movies are filtered for appropriate content (PG-13 and below, family-friendly genres, English language only)
             </p>
           </div>
           

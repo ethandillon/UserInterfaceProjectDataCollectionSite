@@ -63,6 +63,11 @@ const filterMovies = (movies) => {
       return false
     }
     
+    // Ensure movie is in English
+    if (movie.original_language !== 'en') {
+      return false
+    }
+    
     return true
   })
 }
@@ -74,7 +79,7 @@ const filterMovies = (movies) => {
  */
 export const fetchTrendingMovies = async (page = 1) => {
   try {
-    const response = await tmdbApi.get(`/trending/movie/week?page=${page}&include_adult=false`)
+    const response = await tmdbApi.get(`/trending/movie/week?page=${page}&include_adult=false&with_original_language=en`)
     const filteredResults = filterMovies(response.data.results)
     return { ...response.data, results: filteredResults }
   } catch (error) {
@@ -90,7 +95,7 @@ export const fetchTrendingMovies = async (page = 1) => {
  */
 export const fetchPopularMovies = async (page = 1) => {
   try {
-    const response = await tmdbApi.get(`/movie/popular?page=${page}&include_adult=false`)
+    const response = await tmdbApi.get(`/movie/popular?page=${page}&include_adult=false&with_original_language=en`)
     const filteredResults = filterMovies(response.data.results)
     return { ...response.data, results: filteredResults }
   } catch (error) {
@@ -118,7 +123,7 @@ export const fetchFamilyMovies = async (page = 1) => {
       12, // Adventure
     ].join(',')
     
-    const response = await tmdbApi.get(`/discover/movie?with_genres=${familyGenres}&page=${page}&include_adult=false&vote_average.gte=6&vote_count.gte=200&certification_country=US&certification.lte=PG-13`)
+    const response = await tmdbApi.get(`/discover/movie?with_genres=${familyGenres}&page=${page}&include_adult=false&vote_average.gte=6&vote_count.gte=200&certification_country=US&certification.lte=PG-13&with_original_language=en`)
     const filteredResults = filterMovies(response.data.results)
     return { ...response.data, results: filteredResults }
   } catch (error) {
@@ -141,7 +146,7 @@ export const fetchMoviesByGenre = async (genreId, page = 1) => {
       return { results: [] }
     }
     
-    const response = await tmdbApi.get(`/discover/movie?with_genres=${genreId}&page=${page}&sort_by=popularity.desc&include_adult=false&vote_average.gte=5&vote_count.gte=100`)
+    const response = await tmdbApi.get(`/discover/movie?with_genres=${genreId}&page=${page}&sort_by=popularity.desc&include_adult=false&vote_average.gte=5&vote_count.gte=100&with_original_language=en`)
     const filteredResults = filterMovies(response.data.results)
     return { ...response.data, results: filteredResults }
   } catch (error) {
