@@ -11,12 +11,14 @@ const MovieSelection = ({ userData }) => {
 
   // State management
   const [movies, setMovies] = useState([])
+  const [initialMovies, setInitialMovies] = useState([]) // Store initial set for Group A
   const [genres, setGenres] = useState([])
   const [selectedMovies, setSelectedMovies] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [loadingNewMovies, setLoadingNewMovies] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
+  const [showGroupALoading, setShowGroupALoading] = useState(false)
   const [showGroupBLoading, setShowGroupBLoading] = useState(false)
 
   const MAX_SELECTIONS = 5
@@ -32,6 +34,7 @@ const MovieSelection = ({ userData }) => {
         ])
         
         setMovies(moviesData)
+        setInitialMovies(moviesData) // Store initial set for Group A
         setGenres(genresData.genres)
         setError('')
       } catch (error) {
@@ -79,55 +82,73 @@ const MovieSelection = ({ userData }) => {
       console.error('Error logging movie selection:', error)
     }
 
-    // Enhanced adaptive behavior - reload entire bottom half with related genres
-    // Apply to all users, but this represents the "adaptive" behavior for research
-    if (movie.genre_ids && movie.genre_ids.length > 0) {
-      try {
-        // Show Group B specific loading for 2 seconds
-        if (group === 'B') {
+    // Enhanced adaptive behavior - Different for Group A vs Group B
+    if (group === 'A') {
+      // GROUP A (STATIC): Reshuffle the same initial set of movies
+      setShowGroupALoading(true)
+      
+      setTimeout(() => {
+        // Filter out selected movies from the initial set
+        const availableMovies = initialMovies.filter(m => !newSelectedMovies.some(sm => sm.id === m.id))
+        
+        // If we need more movies to fill the grid, add back some selected ones (but they'll show as selected)
+        let displayMovies = [...availableMovies]
+        if (displayMovies.length < 15) { // Keep at least 15 unselected movies visible
+          const selectedToShow = newSelectedMovies.slice(0, 20 - displayMovies.length)
+          displayMovies = [...displayMovies, ...selectedToShow]
+        }
+        
+        // Shuffle the display movies to make it look like the system is "working"
+        const shuffledMovies = displayMovies.sort(() => 0.5 - Math.random())
+        setMovies(shuffledMovies.slice(0, 20))
+        
+        setShowGroupALoading(false)
+      }, 1000) // 1 second loading
+      
+    } else if (group === 'B') {
+      // GROUP B (ADAPTIVE): Fetch new genre-related movies
+      if (movie.genre_ids && movie.genre_ids.length > 0) {
+        try {
           setShowGroupBLoading(true)
+          setLoadingNewMovies(true)
           
-          // Keep the loading spinner visible for 2 seconds
+          // Get all movie IDs that should be excluded (selected movies)
+          const excludeMovieIds = newSelectedMovies.map(m => m.id)
+          
+          // Get top 3 genres from the selected movie
+          const topGenres = movie.genre_ids.slice(0, 3)
+          
+          // Fetch highly genre-related movies (80% related, 20% diverse)
+          const relatedMovieCount = 16
+          const diverseMovieCount = 4
+          
+          // Fetch related genre movies
+          const relatedMovies = await fetchRelatedGenreMovies(topGenres, excludeMovieIds, relatedMovieCount)
+          
+          // Get diverse movies to fill remaining slots
+          const diverseMovies = await fetchDiverseMovies(diverseMovieCount * 2) // Fetch extra for filtering
+          const filteredDiverse = diverseMovies
+            .filter(m => !excludeMovieIds.includes(m.id) && !relatedMovies.some(rm => rm.id === m.id))
+            .slice(0, diverseMovieCount)
+          
+          // Combine related and diverse movies
+          const newMovieGrid = [...relatedMovies, ...filteredDiverse]
+          
+          // Shuffle the entire grid to mix related and diverse movies
+          const shuffledGrid = newMovieGrid.sort(() => 0.5 - Math.random())
+          
+          // Replace the entire movie grid
+          setMovies(shuffledGrid.slice(0, 20))
+          
           setTimeout(() => {
             setShowGroupBLoading(false)
           }, 1000)
+          
+        } catch (error) {
+          console.error('Error fetching adaptive movies:', error)
+        } finally {
+          setLoadingNewMovies(false)
         }
-        
-        setLoadingNewMovies(true)
-        
-        // Get all movie IDs that should be excluded (selected movies)
-        const excludeMovieIds = newSelectedMovies.map(m => m.id)
-        
-        // Get top 3 genres from the selected movie
-        const topGenres = movie.genre_ids.slice(0, 3)
-        
-        // For Group A (Static): Show some genre-related movies but less adaptive
-        // For Group B (Adaptive): Show highly genre-related movies
-        const relatedMovieCount = group === 'A' ? 12 : 16 // 60% vs 80%
-        const diverseMovieCount = 20 - relatedMovieCount
-        
-        // Fetch related genre movies
-        const relatedMovies = await fetchRelatedGenreMovies(topGenres, excludeMovieIds, relatedMovieCount)
-        
-        // Get diverse movies to fill remaining slots
-        const diverseMovies = await fetchDiverseMovies(diverseMovieCount * 2) // Fetch extra for filtering
-        const filteredDiverse = diverseMovies
-          .filter(m => !excludeMovieIds.includes(m.id) && !relatedMovies.some(rm => rm.id === m.id))
-          .slice(0, diverseMovieCount)
-        
-        // Combine related and diverse movies
-        const newMovieGrid = [...relatedMovies, ...filteredDiverse]
-        
-        // Shuffle the entire grid to mix related and diverse movies
-        const shuffledGrid = newMovieGrid.sort(() => 0.5 - Math.random())
-        
-        // Replace the entire movie grid (except selected movies which will remain visually selected)
-        setMovies(shuffledGrid.slice(0, 20))
-        
-      } catch (error) {
-        console.error('Error fetching adaptive movies:', error)
-      } finally {
-        setLoadingNewMovies(false)
       }
     }
 
@@ -172,6 +193,12 @@ const MovieSelection = ({ userData }) => {
       // Fetch fresh movies
       const freshMovies = await fetchFreshMovies(20)
       setMovies(freshMovies)
+      
+      // For Group A, also update the initial movies set
+      if (group === 'A') {
+        setInitialMovies(freshMovies)
+      }
+      
       setError('')
     } catch (error) {
       console.error('Error refreshing movies:', error)
@@ -220,13 +247,6 @@ const MovieSelection = ({ userData }) => {
             Click on movie posters to select them.
           </p>
           
-          {/* Content filtering notice */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-6 max-w-2xl mx-auto">
-            <p className="text-green-700 text-sm">
-              ✅ Movies selected for genre diversity. After each selection, {group === 'A' ? '60%' : '80%'} of recommendations will match your chosen genres
-            </p>
-          </div>
-          
           {/* Progress indicator */}
           <div className="flex items-center justify-center space-x-4 mb-6">
             <div className="bg-white rounded-lg shadow-sm px-4 py-2">
@@ -270,11 +290,13 @@ const MovieSelection = ({ userData }) => {
             ></div>
           </div>
 
-          {loadingNewMovies && (
+          {(loadingNewMovies || showGroupALoading) && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
               <div className="flex items-center justify-center">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                <span className="text-blue-700 text-sm">Loading movies based on your selection...</span>
+                <span className="text-blue-700 text-sm">
+                  Updating recommendations based on your selection...
+                </span>
               </div>
             </div>
           )}
@@ -316,6 +338,21 @@ const MovieSelection = ({ userData }) => {
             ))}
           </div>
 
+          {/* Group A Loading Overlay */}
+          {showGroupALoading && group === 'A' && (
+            <div className="absolute inset-0 bg-white bg-opacity-95 backdrop-blur-sm z-30 flex items-center justify-center rounded-lg min-h-[400px]">
+              <div className="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4 text-center border-2 border-blue-100">
+                <div className="text-blue-500 mb-4">
+                  <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500 mx-auto"></div>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Updating Recommendations</h3>
+                <p className="text-gray-600">
+                  Processing your selection...
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Group B Loading Overlay */}
           {showGroupBLoading && group === 'B' && (
             <div className="absolute inset-0 bg-white bg-opacity-95 backdrop-blur-sm z-30 flex items-center justify-center rounded-lg min-h-[400px]">
@@ -323,9 +360,9 @@ const MovieSelection = ({ userData }) => {
                 <div className="text-blue-500 mb-4">
                   <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500 mx-auto"></div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Loading New Suggestions</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Updating Recommendations</h3>
                 <p className="text-gray-600">
-                  Finding movies similar to your selection...
+                  Processing your selection...
                 </p>
               </div>
             </div>

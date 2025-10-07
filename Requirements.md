@@ -1,6 +1,6 @@
 # 🎬 Movie Recommender A/B Research Application Requirements
 
-## 📋 High-Level Goal
+
 Build a static **Vite + React** web app that:  
 1. Collects student **name + ID**  
 2. Runs a **movie recommendation experiment (A/B test)**  
@@ -30,7 +30,7 @@ Build a static **Vite + React** web app that:
 
 ---
 
-### Sprint 3 – Movie Fetching & Display (2 weeks)
+### Sprint 3 – Movie Fetching & Display (2 weeks) ✅ COMPLETED
 - [x] **Req 3.1:** Integrate with **TMDB API** to fetch movies (e.g., trending or random)  
 - [x] **Req 3.2:** Display movies in a **grid of posters** with title & genre  
 - [x] **Req 3.3:** Allow users to select movies (click poster = "selected")  
@@ -40,23 +40,23 @@ Build a static **Vite + React** web app that:
   - [x] **Req 3.5:** When a movie is selected, fetch more movies of the **same genre** to update the grid  
 
 - **Static Condition (Group A):**  
-  - [x] **Req 3.6:** Movie grid remains unchanged after selections  
+  - [x] **Req 3.6:** Movie grid remains the same set throughout - when selections are made, show 1-second loading and reshuffle the same movies (removing selected ones from view)  
 
-- **Deliverable:** Users can pick 5 movies, with adaptive vs static flow depending on group  
+- [x] **Deliverable:** Users can pick 5 movies, with adaptive vs static flow depending on group  
 
 ---
 
-### Sprint 4 – Survey Implementation (1 week)
-- [ ] **Req 4.1:** After 5 selections, show survey form with Likert scale questions:  
+### Sprint 4 – Survey Implementation (1 week) ✅ COMPLETED
+- [x] **Req 4.1:** After 5 selections, show survey form with Likert scale questions:  
   - Helpfulness (1–10)  
   - Satisfaction  
   - Ease of use  
   - Personalization  
   - Trust  
   - Would use again (Yes/No + scale)  
-- [ ] **Req 4.2:** Add open-text box for feedback  
-- [ ] **Req 4.3:** Record survey answers in Google Sheet (linked to student ID + group)  
-- **Deliverable:** Survey responses logged correctly  
+- [x] **Req 4.2:** Add open-text box for feedback  
+- [x] **Req 4.3:** Record survey answers in Google Sheet (linked to student ID + group)  
+- [x] **Deliverable:** Survey responses logged correctly  
 
 ---
 
@@ -70,7 +70,7 @@ Build a static **Vite + React** web app that:
 
 ---
 
-### Sprint 6 – Data & Testing (1–2 weeks)
+### Sprint 6 – Data & Testing (1–2 weeks) 🚀 READY FOR TESTING
 - [ ] **Req 6.1:** Test end-to-end flow with test participants  
 - [ ] **Req 6.2:** Verify events (user info, selections, survey) log correctly in Google Sheet  
 - [ ] **Req 6.3:** Check randomization fairness between Group A & B  

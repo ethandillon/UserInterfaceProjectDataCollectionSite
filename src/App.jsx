@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import UserInputForm from './components/UserInputForm'
 import MovieSelection from './components/MovieSelection'
 import Survey from './components/Survey'
+import Debrief from './components/Debrief'
 
 function App() {
   const [userData, setUserData] = useState(null)
@@ -34,6 +35,14 @@ function App() {
         element={
           userData ? 
             <Survey userData={userData} /> : 
+            <Navigate to="/" replace />
+        } 
+      />
+      <Route 
+        path="/debrief" 
+        element={
+          userData ? 
+            <Debrief userData={userData} /> : 
             <Navigate to="/" replace />
         } 
       />
